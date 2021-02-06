@@ -18,11 +18,27 @@ function generateToken(params = { id: user.id }) {
 
 router.post('/register', async (req, res) => {
   try {
+    var { email, username, password, passwordConfirmation } = req.body;
 
-    const { email } = req.body;
+    if (!email)
+      return res.status(400).send({ error: 'The email field is required' });
+
+    if (!password)
+      return res.status(400).send({ error: 'The password field is required' });
+
+    if (!passwordConfirmation)
+      return res.status(400).send({ error: 'The password confirmation field is required' });
+
+    if (password !== passwordConfirmation)
+      return res.status(400).send({ error: 'The password confirmation does not match' });
 
     if (await User.findOne({ email }))
-      return res.status(400).send({ error: 'User alredy exists' });
+      return res.status(400).send({ error: 'E-mail already registered' });
+
+    if (await User.findOne({ username }))
+      return res.status(400).send({ error: 'Username already registered' });
+
+    req.body.passwordConfirmation = undefined;
 
     const user = await User.create(req.body);
 

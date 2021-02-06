@@ -4,7 +4,16 @@ const bcrypt = require('bcrypt');
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: false,
+  },
+  lastName: {
+    type: String,
+    required: false,
+  },
+  username: {
+    type: String,
+    unique: true,
+    required: false,
   },
   email: {
     type: String,
@@ -15,6 +24,11 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    select: false
+  },
+  passwordConfirmation: {
+    type: String,
+    required: false,
     select: false
   },
   passwordResetToken: {
@@ -32,8 +46,13 @@ const UserSchema = new mongoose.Schema({
 });
 
 UserSchema.pre('save', async function (next) {
-  const hash = await bcrypt.hash(this.password, 10);
-  this.password = hash;
+  const passwordHash = await bcrypt.hash(this.password, 10);
+  this.password = passwordHash;
+
+  if (this.passwordConfirmation) {
+    const passwordConfirmationHash = await bcrypt.hash(this.passwordConfirmation, 10);
+    this.password = passwordConfirmationHash;
+  }
 
   next();
 });
